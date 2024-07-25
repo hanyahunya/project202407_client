@@ -7,8 +7,8 @@ const TopBarContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #3498db;
-  color: #ecf0f1;
+  background-color: #191919;
+  color: #D4D4D4;
   padding: 0; /* 패딩 제거 */
 `;
 
