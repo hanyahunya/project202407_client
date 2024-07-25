@@ -58,6 +58,7 @@ const DescriptionText = styled.div`
 const Layout = ({ projects }) => {
   const [selectedProject, setSelectedProject] = useState(null);
   const [selectedSection, setSelectedSection] = useState(null);
+  const [previousContent, setPreviousContent] = useState(null);
 
   const handleProjectClick = (project) => {
     if (selectedProject === project) {
@@ -66,6 +67,7 @@ const Layout = ({ projects }) => {
       setSelectedSection(null);
     } else {
       // 다른 프로젝트를 클릭하면 해당 프로젝트를 선택하고 섹션을 초기화
+      setPreviousContent(renderContent()); // 현재 콘텐츠 저장
       setSelectedProject(project);
       setSelectedSection(null);
     }
@@ -77,7 +79,7 @@ const Layout = ({ projects }) => {
 
   const renderContent = () => {
     if (!selectedProject) {
-      return <div>프로젝트를 선택하세요.</div>;
+      return previousContent; // 이전 콘텐츠 유지
     }
 
     if (selectedSection === 'tasks') {

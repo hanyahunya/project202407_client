@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import axios from '../../axiosConfig';
 
 const ModalOverlay = styled.div`
   position: fixed;
@@ -76,11 +77,28 @@ const ProjectCreateModal = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  const handleCreateProject = () => {
+  const handleCreateProject = async () => {
     if (title.trim()) {
-      // 프로젝트 생성 로직
-      console.log('Project Created:', { title, description });
-      handleCloseModal(); // 모달을 닫고 상태 초기화
+      const token = localStorage.getItem('token');
+      try {
+        await axios.post('/api/projects/create', 
+          { 
+            projectName: title, 
+            description: description || '' 
+          }, 
+          {
+            headers: { 
+              'Authorization': `Bearer ${token}` 
+            }
+          }
+        );
+        console.log('Project Created:', { title, description });
+        handleCloseModal(); // 모달을 닫고 상태 초기화
+        window.location.reload(); // 페이지 새로 고침
+      } catch (error) {
+        console.error('Error creating project:', error);
+        // 오류 처리 로직 추가 가능
+      }
     }
   };
 
