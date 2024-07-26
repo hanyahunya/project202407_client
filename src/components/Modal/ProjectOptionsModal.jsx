@@ -1,5 +1,8 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
+import AddMemberModal from './AddMemberModal';
+import ProjectSettingsModal from './ProjectSettingsModal';
+import ProjectRenameModal from './ProjectRenameModal';
 
 const ModalContainer = styled.div`
   position: absolute;
@@ -8,38 +11,112 @@ const ModalContainer = styled.div`
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);
   color: #D4D4D4;
   padding: 10px;
-  width: 200px; /* 적절한 너비 설정 */
+  width: 200px;
   z-index: 1001;
   top: ${props => props.top}px;
   left: ${props => props.left}px;
-  transform: translateX(140px); /* 오른쪽으로 140px 이동 */
 `;
 
 const Button = styled.button`
-  background: transparent; /* 배경을 투명하게 */
+  background: transparent;
   color: #D4D4D4;
-  border: 1px solid transparent; /* 테두리를 투명하게 */
+  border: 1px solid transparent;
   border-radius: 5px;
-  padding: 1px; /* 패딩을 1px로 설정 */
-  margin: 5px 0; /* 버튼 간격 조정 */
-  width: 100%; /* 버튼 가로 길이를 최대한으로 설정 */
+  padding: 1px;
+  margin: 5px 0;
+  width: 100%;
   cursor: pointer;
-  text-align: left; /* 텍스트를 좌측 정렬 */
-  padding-left: 10px; /* 좌측 패딩 추가하여 텍스트와 버튼 테두리 사이에 여백을 둠 */
+  text-align: left;
+  padding-left: 10px;
   transition: background-color 0.3s ease, color 0.3s ease;
 
   &:hover {
-    background-color: rgba(255, 255, 255, 0.1); /* hover 시 배경색 변경 */
+    background-color: rgba(255, 255, 255, 0.1);
     color: #ffffff;
   }
 `;
 
 const ProjectOptionsModal = ({ top, left, onClose }) => {
+  const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
+  const [isProjectSettingsModalOpen, setIsProjectSettingsModalOpen] = useState(false);
+  const [isProjectRenameModalOpen, setIsProjectRenameModalOpen] = useState(false);
+  const modalRef = useRef(null);
+
+  const handleOpenAddMemberModal = () => {
+    setIsAddMemberModalOpen(true);
+  };
+
+  const handleCloseAddMemberModal = () => {
+    setIsAddMemberModalOpen(false);
+    onClose();
+  };
+
+  const handleOpenProjectSettingsModal = () => {
+    setIsProjectSettingsModalOpen(true);
+  };
+
+  const handleCloseProjectSettingsModal = () => {
+    setIsProjectSettingsModalOpen(false);
+    onClose();
+  };
+
+  const handleOpenProjectRenameModal = () => {
+    setIsProjectRenameModalOpen(true);
+  };
+
+  const handleCloseProjectRenameModal = () => {
+    setIsProjectRenameModalOpen(false);
+    onClose();
+  };
+
+  const handleClickOutside = (event) => {
+    if (
+      modalRef.current &&
+      !modalRef.current.contains(event.target) &&
+      !isAddMemberModalOpen &&
+      !isProjectSettingsModalOpen &&
+      !isProjectRenameModalOpen
+    ) {
+      onClose();
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isAddMemberModalOpen, isProjectSettingsModalOpen, isProjectRenameModalOpen]);
+
   return (
-    <ModalContainer top={top} left={left}>
-      <Button onClick={onClose}>멤버 추가</Button>
-      <Button onClick={onClose}>팀 프로젝트 설정</Button>
-    </ModalContainer>
+    <>
+      <ModalContainer ref={modalRef} top={top} left={left}>
+        <Button onClick={handleOpenAddMemberModal}>멤버 추가</Button>
+        <Button onClick={handleOpenProjectSettingsModal}>팀 프로젝트 설정</Button>
+        <Button onClick={handleOpenProjectRenameModal}>프로젝트 이름 변경</Button>
+      </ModalContainer>
+      {isAddMemberModalOpen && (
+        <AddMemberModal
+          top={top + 50}
+          left={left}
+          onClose={handleCloseAddMemberModal}
+        />
+      )}
+      {isProjectSettingsModalOpen && (
+        <ProjectSettingsModal
+          top={top + 100}
+          left={left}
+          onClose={handleCloseProjectSettingsModal}
+        />
+      )}
+      {isProjectRenameModalOpen && (
+        <ProjectRenameModal
+          top={top + 150}
+          left={left}
+          onClose={handleCloseProjectRenameModal}
+        />
+      )}
+    </>
   );
 };
 

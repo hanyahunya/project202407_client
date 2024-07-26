@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import styled, { css } from 'styled-components';
 import ProjectCreateModal from '../../Modal/ProjectCreateModal';
 import ProjectOptionsModal from '../../Modal/ProjectOptionsModal';
-import AccountModal from '../../Modal/AccountModal'; // 추가된 모달
-import { FaChevronDown, FaChevronRight, FaEllipsisH } from 'react-icons/fa'; // 추가된 아이콘
+import AccountModal from '../../Modal/AccountModal';
+import { FaChevronDown, FaChevronRight, FaEllipsisH } from 'react-icons/fa';
 import { jwtDecode } from 'jwt-decode';
 import UserProfile from './UserProfile';
 
@@ -103,7 +103,7 @@ const ProjectItem = styled.div`
   border-radius: 5px;
   display: flex;
   align-items: center;
-  justify-content: space-between; /* 좌측과 우측 요소 간 거리 유지 */
+  justify-content: space-between;
   box-sizing: border-box;
   position: relative;
   &:hover {
@@ -137,8 +137,8 @@ const ProjectTitle = styled.div`
   overflow: hidden;
   text-overflow: ellipsis;
   font-size: 14px;
-  flex: 1; /* 제목이 가능한 공간을 차지하게 함 */
-  margin-left: 8px; /* 좌측 여백 추가 */
+  flex: 1;
+  margin-left: 8px;
 `;
 
 const SectionItem = styled.div`
@@ -164,20 +164,20 @@ const SectionItem = styled.div`
 `;
 
 const OptionsButton = styled.div`
-  display: none; /* 기본적으로 버튼을 숨김 */
+  display: none;
   align-items: center;
   justify-content: center;
-  width: 24px; /* 버튼의 너비 */
-  height: 24px; /* 버튼의 높이 */
-  color: #9b9b9b; /* 아이콘 색상 */
+  width: 24px;
+  height: 24px;
+  color: #9b9b9b;
   cursor: pointer;
-  font-size: 16px; /* 아이콘 크기 */
-  margin-left: 5px; /* 버튼과 왼쪽 요소 사이 간격 */
+  font-size: 16px;
+  margin-left: 5px;
   ${ProjectItem}:hover & {
-    display: flex; /* 마우스가 올려졌을 때 버튼을 보이게 함 */
+    display: flex;
   }
   &:hover {
-    color: #ffffff; /* 아이콘 hover 시 색상 변경 */
+    color: #ffffff;
   }
 `;
 
@@ -198,6 +198,7 @@ const Sidebar = ({
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
 
   const accountModalRef = useRef(null);
+  const optionsModalRef = useRef(null);
 
   useEffect(() => {
     const savedState = localStorage.getItem('sidebarHidden');
@@ -242,27 +243,30 @@ const Sidebar = ({
     e.stopPropagation();
     setRightClickProject(project);
     const rect = e.target.getBoundingClientRect();
-    setModalPosition({ top: rect.top + window.scrollY, left: rect.left + window.scrollX });
+    setModalPosition({
+      top: rect.top + window.scrollY + 20,
+      left: rect.left + window.scrollX + 20,
+    });
     setIsOptionsModalOpen(true);
   };
 
   const handleOptionsButtonClick = (project, e) => {
-    e.stopPropagation(); // 다른 클릭 이벤트 전파 방지
+    e.stopPropagation();
     setRightClickProject(project);
     const rect = e.currentTarget.getBoundingClientRect();
-    setModalPosition({ top: rect.top + window.scrollY, left: rect.left + window.scrollX });
+    setModalPosition({
+      top: rect.top + window.scrollY + 20,
+      left: rect.left + window.scrollX + 20,
+    });
     setIsOptionsModalOpen(true);
   };
 
   const handleClickOutside = (e) => {
-    if (!e.target.closest('.modal-container') && !e.target.closest('.account-modal')) {
+    if (
+      (accountModalRef.current && !accountModalRef.current.contains(e.target)) &&
+      (optionsModalRef.current && !optionsModalRef.current.contains(e.target))
+    ) {
       setIsOptionsModalOpen(false);
-      setIsAccountModalOpen(false);
-    }
-  };
-
-  const handleClickOutside2 = (e) => {
-    if (accountModalRef.current && !accountModalRef.current.contains(e.target)) {
       setIsAccountModalOpen(false);
     }
   };
@@ -276,19 +280,12 @@ const Sidebar = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOptionsModalOpen, isAccountModalOpen]);
 
-  useEffect(() => {
-    if (isAccountModalOpen) {
-      document.addEventListener('mousedown', handleClickOutside2);
-    } else {
-      document.removeEventListener('mousedown', handleClickOutside2);
-    }
-    return () => document.removeEventListener('mousedown', handleClickOutside2);
-  }, [isAccountModalOpen]);
-
   const handleProfileClick = (e) => {
     e.stopPropagation();
     setIsAccountModalOpen(true);
   };
+
+  
 
   return (
     <SidebarContainer>
@@ -350,12 +347,17 @@ const Sidebar = ({
       </ProjectList>
       <ProjectCreateModal isOpen={isModalOpen} onClose={handleCloseModal} />
       {isOptionsModalOpen && rightClickProject && (
-        <ProjectOptionsModal onClose={() => setIsOptionsModalOpen(false)} />
+        <ProjectOptionsModal
+          ref={optionsModalRef}
+          top={modalPosition.top}
+          left={modalPosition.left}
+          onClose={() => setIsOptionsModalOpen(false)}
+        />
       )}
       {isAccountModalOpen && (
         <AccountModal
-          className="account-modal"
           ref={accountModalRef}
+          className="account-modal"
           onClose={() => setIsAccountModalOpen(false)}
         />
       )}

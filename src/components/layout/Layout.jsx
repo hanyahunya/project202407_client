@@ -50,11 +50,6 @@ const MainContentWrapper = styled.div`
   color: #D4D4D4; /* 텍스트 색상 */
 `;
 
-const DescriptionText = styled.div`
-  color: #e8eaed; /* 설명 텍스트 색상 */
-  padding: 20px;
-`;
-
 const Layout = ({ projects }) => {
   const [selectedProject, setSelectedProject] = useState(null);
   const [selectedSection, setSelectedSection] = useState(null);
@@ -79,28 +74,21 @@ const Layout = ({ projects }) => {
 
   const renderContent = () => {
     if (!selectedProject) {
-      return previousContent; // 이전 콘텐츠 유지
+      // return previousContent; // Return previous content or null if no project is selected
+      return localStorage.getItem('prevPage');
     }
-
-    if (selectedSection === 'tasks') {
-      return <Tasks project={selectedProject} />; // 선택된 프로젝트의 작업을 렌더링
+  
+    switch (selectedSection) {
+      case 'tasks':
+        return <Tasks projectId={selectedProject.projectId} />;
+      case 'calendar':
+        return <MeetingCalendar projectId={selectedProject.projectId} />;
+      default:
+        // If no section is selected, you can render a default component or message
+        return previousContent;
     }
-    
-    if (selectedSection === 'calendar') {
-      return <MeetingCalendar project={selectedProject} />; // 선택된 프로젝트의 회의 캘린더를 렌더링
-    }
-
-    // 선택된 프로젝트의 설명을 표시
-    return (
-      <DescriptionText>
-        {selectedProject.description ? (
-          selectedProject.description
-        ) : (
-          '간략한 설명이 없습니다.'
-        )}
-      </DescriptionText>
-    );
   };
+  
 
   return (
     <LayoutContainer>

@@ -1,16 +1,13 @@
 import React from 'react';
-import styled from 'styled-components';
 
-const CalendarContainer = styled.div`
-  padding: 1rem;
-`;
-
-const MeetingCalendar = () => {
+const MeetingCalendar = ({ projectId }) => {
+  localStorage.setItem('prevPage', projectId);
+  // Use projectId to fetch meetings or events specific to the selected project
   return (
-    <CalendarContainer>
-      <h2>회의 캘린더</h2>
-      {/* 회의 캘린더 내용을 여기에 추가 */}
-    </CalendarContainer>
+    <div>
+      <h2>Meeting Calendar for Project {projectId}</h2>
+      {/* Render calendar or meetings/events specific to the projectId */}
+    </div>
   );
 };
 
