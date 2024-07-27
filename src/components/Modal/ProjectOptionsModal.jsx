@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import AddMemberModal from './AddMemberModal';
 import ProjectSettingsModal from './ProjectSettingsModal';
 import ProjectRenameModal from './ProjectRenameModal';
+import axios from '../../axiosConfig';
 
 const ModalContainer = styled.div`
   position: absolute;
@@ -36,13 +37,21 @@ const Button = styled.button`
   }
 `;
 
-const ProjectOptionsModal = ({ top, left, onClose }) => {
+const ProjectOptionsModal = ({ top, left, projectId, onClose }) => {
   const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
   const [isProjectSettingsModalOpen, setIsProjectSettingsModalOpen] = useState(false);
   const [isProjectRenameModalOpen, setIsProjectRenameModalOpen] = useState(false);
+  const [projectName, SetProjectName] = useState("");
   const modalRef = useRef(null);
 
-  const handleOpenAddMemberModal = () => {
+  const handleOpenAddMemberModal = async () => {
+    const token = localStorage.getItem('token');
+    const res = await axios.get(`/api/projects/${projectId}`, {
+      headers : {
+        'Authorization' : `Bearer ${token}`
+      }
+    });
+    SetProjectName(res.data.projectName);
     setIsAddMemberModalOpen(true);
   };
 
@@ -100,6 +109,8 @@ const ProjectOptionsModal = ({ top, left, onClose }) => {
           top={top + 50}
           left={left}
           onClose={handleCloseAddMemberModal}
+          projectId={projectId}
+          projectName={projectName}
         />
       )}
       {isProjectSettingsModalOpen && (

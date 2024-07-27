@@ -5,6 +5,7 @@ import ProjectOptionsModal from "../../Modal/ProjectOptionsModal";
 import AccountModal from "../../Modal/AccountModal";
 import { FaChevronDown, FaChevronRight, FaEllipsisH } from "react-icons/fa";
 import { jwtDecode } from "jwt-decode";
+import axios from "../../../axiosConfig";
 import UserProfile from "./UserProfile";
 
 const SidebarContainer = styled.div`
@@ -128,6 +129,21 @@ const ProjectItem = styled.div`
   }
 `;
 
+const ProjectTooltip = styled.div`
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 35px; // Adjust as needed
+  background-color: #333333;
+  color: #ffffff;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 12px;
+  white-space: nowrap;
+  display: ${(props) => (props.visible ? "block" : "none")};
+  z-index: 10;
+`;
+
 const IconContainer = styled.div`
   margin-right: 8px;
   display: flex;
@@ -212,6 +228,9 @@ const Sidebar = ({
   const [rightClickProject, setRightClickProject] = useState(null);
   const [userName, setUserName] = useState("");
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
+  const [hoveredProject, setHoveredProject] = useState(null);
+  const [hoverTimer, setHoverTimer] = useState(null);
+  const [projectDescription, setProjectDescription] = useState(""); // 프로젝트 설명 상태 추가
 
   const accountModalRef = useRef(null);
   const optionsModalRef = useRef(null);
@@ -257,9 +276,8 @@ const Sidebar = ({
 
   const handleProjectRightClick = (project, e) => {
     e.preventDefault();
-    e.stopPropagation();
     setRightClickProject(project);
-    const rect = e.target.getBoundingClientRect();
+    const rect = e.currentTarget.getBoundingClientRect();
     setModalPosition({
       top: rect.top + window.scrollY + 20,
       left: rect.left + window.scrollX + 20,
@@ -309,10 +327,36 @@ const Sidebar = ({
     if (projectRefs.current[index]) {
       projectRefs.current[index].scrollIntoView({
         behavior: "smooth",
-        block: "center",  // Scroll to the center of the container
-        inline: "nearest" // Align horizontally in the nearest way (no horizontal scrolling needed here)
+        block: "center",
+        inline: "nearest",
       });
     }
+  };
+
+  const handleMouseOver = async (project) => {
+    setHoverTimer(
+      setTimeout(async () => {
+        // 엔드포인트 요청
+        try {
+          const response = await axios.get(`/api/projects/${project.projectId}`);
+          setProjectDescription(response.data.description); // 응답값 저장
+          console.log(response.data.projectName);
+          console.log(response.data.projectName);
+          console.log(response.data.projectName);
+          console.log(response.data.description);
+          console.log(response.data.description);
+          setHoveredProject(project);
+        } catch (error) {
+          console.error("Error fetching project details:", error);
+        }
+      }, 1000) // 1초로 설정
+    );
+  };
+
+  const handleMouseOut = () => {
+    clearTimeout(hoverTimer);
+    setHoveredProject(null);
+    setProjectDescription(""); // 마우스가 나가면 설명 초기화
   };
 
   return (
@@ -342,6 +386,8 @@ const Sidebar = ({
                 }
               }}
               onContextMenu={(e) => handleProjectRightClick(project, e)}
+              onMouseOver={() => handleMouseOver(project)}
+              onMouseOut={handleMouseOut}
             >
               <IconContainer>
                 <Icon>
@@ -356,6 +402,18 @@ const Sidebar = ({
               <OptionsButton onClick={(e) => handleOptionsButtonClick(project, e)}>
                 <FaEllipsisH />
               </OptionsButton>
+              {hoveredProject === project && (
+                <ProjectTooltip visible={true}>
+                  {projectDescription ? (
+                    <div>
+                      {/* 엔드포인트에서 가져온 데이터를 표시 */}
+                      <p>{projectDescription}</p>
+                    </div>
+                  ) : (
+                    ""
+                  )}
+                </ProjectTooltip>
+              )}
             </ProjectItem>
             {project === selectedProject && (
               <div>
@@ -384,6 +442,7 @@ const Sidebar = ({
           ref={optionsModalRef}
           top={modalPosition.top}
           left={modalPosition.left}
+          projectId={rightClickProject.projectId} // Pass the projectId as a prop
           onClose={() => setIsOptionsModalOpen(false)}
         />
       )}
