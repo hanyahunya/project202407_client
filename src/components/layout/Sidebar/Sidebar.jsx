@@ -1,15 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
-import styled, { css } from 'styled-components';
-import ProjectCreateModal from '../../Modal/ProjectCreateModal';
-import ProjectOptionsModal from '../../Modal/ProjectOptionsModal';
-import AccountModal from '../../Modal/AccountModal';
-import { FaChevronDown, FaChevronRight, FaEllipsisH } from 'react-icons/fa';
-import { jwtDecode } from 'jwt-decode';
-import UserProfile from './UserProfile';
+import React, { useState, useEffect, useRef } from "react";
+import styled, { css } from "styled-components";
+import ProjectCreateModal from "../../Modal/ProjectCreateModal";
+import ProjectOptionsModal from "../../Modal/ProjectOptionsModal";
+import AccountModal from "../../Modal/AccountModal";
+import { FaChevronDown, FaChevronRight, FaEllipsisH } from "react-icons/fa";
+import { jwtDecode } from "jwt-decode";
+import UserProfile from "./UserProfile";
 
 const SidebarContainer = styled.div`
   background-color: #202020;
-  color: #9B9B9B;
+  color: #9b9b9b;
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -37,7 +37,7 @@ const Header = styled.div`
 const Title = styled.h2`
   margin: 0;
   flex: 1;
-  color: #9B9B9B;
+  color: #9b9b9b;
   ${(props) =>
     props.small &&
     css`
@@ -84,14 +84,30 @@ const Tooltip = styled.div`
   border-radius: 3px;
   font-size: 12px;
   white-space: nowrap;
-  display: ${(props) => (props.visible ? 'block' : 'none')};
+  display: ${(props) => (props.visible ? "block" : "none")};
   z-index: 0;
 `;
 
 const ProjectList = styled.div`
-  transition: max-height 0.3s ease;
-  overflow: hidden;
-  max-height: ${(props) => (props.isHidden ? '0' : '1000px')};
+  transition: max-height 0.3s ease, padding-bottom 0.3s ease;
+  overflow-y: auto; /* Enable vertical scrolling */
+  max-height: ${(props) => (props.isHidden ? "0" : "calc(30px * 8 - 10px)")}; /* Height for 8 items plus 70px padding */
+  padding-bottom: ${(props) => (props.isHidden ? "0" : "70px")}; /* Change padding based on sidebar visibility */
+
+  /* Style scrollbar for WebKit browsers */
+  &::-webkit-scrollbar {
+    width: 6px; /* Width of the scrollbar */
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: transparent; /* Set the scrollbar thumb color to transparent */
+  }
+  &::-webkit-scrollbar-track {
+    background-color: transparent; /* Set the scrollbar track color to transparent */
+  }
+
+  /* Style for Firefox */
+  scrollbar-width: thin; /* Firefox scrollbar size */
+  scrollbar-color: transparent transparent; /* Thumb and track color for Firefox */
 `;
 
 const ProjectItem = styled.div`
@@ -99,7 +115,7 @@ const ProjectItem = styled.div`
   height: 30px;
   padding: 5px;
   margin-bottom: 0rem;
-  background-color: ${(props) => (props.selected ? '#2C2C2C' : 'transparent')};
+  background-color: ${(props) => (props.selected ? "#2C2C2C" : "transparent")};
   border-radius: 5px;
   display: flex;
   align-items: center;
@@ -108,7 +124,7 @@ const ProjectItem = styled.div`
   position: relative;
   &:hover {
     background-color: ${(props) =>
-      props.selected ? '#2C2C2C' : 'rgba(255, 255, 255, 0.1)'};
+      props.selected ? "#2C2C2C" : "rgba(255, 255, 255, 0.1)"};
   }
 `;
 
@@ -146,17 +162,17 @@ const SectionItem = styled.div`
   height: 30px;
   padding: 0px;
   margin-bottom: 0rem;
-  background-color: ${(props) => (props.selected ? '#2C2C2C' : 'transparent')};
+  background-color: ${(props) => (props.selected ? "#2C2C2C" : "transparent")};
   border-radius: 5px;
   display: flex;
   align-items: center;
   font-weight: 500;
   font-size: 14px;
-  color: ${(props) => (props.selected ? '#E1E1E1' : '#9B9B9B')};
+  color: ${(props) => (props.selected ? "#E1E1E1" : "#9B9B9B")};
   padding-left: 16px;
   &:hover {
     background-color: ${(props) =>
-      props.selected ? '#2C2C2C' : 'rgba(255, 255, 255, 0.1)'};
+      props.selected ? "#2C2C2C" : "rgba(255, 255, 255, 0.1)"};
   }
   border: none;
   box-shadow: none;
@@ -194,19 +210,20 @@ const Sidebar = ({
   const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
   const [rightClickProject, setRightClickProject] = useState(null);
-  const [userName, setUserName] = useState('');
+  const [userName, setUserName] = useState("");
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
 
   const accountModalRef = useRef(null);
   const optionsModalRef = useRef(null);
+  const projectRefs = useRef([]); // Array to hold refs for each project item
 
   useEffect(() => {
-    const savedState = localStorage.getItem('sidebarHidden');
+    const savedState = localStorage.getItem("sidebarHidden");
     if (savedState) {
       setIsHidden(JSON.parse(savedState));
     }
 
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (token) {
       const decodedToken = jwtDecode(token);
       setUserName(decodedToken.nickname);
@@ -216,7 +233,7 @@ const Sidebar = ({
   const handleToggleSidebar = () => {
     setIsHidden((prevState) => {
       const newState = !prevState;
-      localStorage.setItem('sidebarHidden', JSON.stringify(newState));
+      localStorage.setItem("sidebarHidden", JSON.stringify(newState));
       return newState;
     });
   };
@@ -263,8 +280,10 @@ const Sidebar = ({
 
   const handleClickOutside = (e) => {
     if (
-      (accountModalRef.current && !accountModalRef.current.contains(e.target)) &&
-      (optionsModalRef.current && !optionsModalRef.current.contains(e.target))
+      accountModalRef.current &&
+      !accountModalRef.current.contains(e.target) &&
+      optionsModalRef.current &&
+      !optionsModalRef.current.contains(e.target)
     ) {
       setIsOptionsModalOpen(false);
       setIsAccountModalOpen(false);
@@ -273,11 +292,11 @@ const Sidebar = ({
 
   useEffect(() => {
     if (isOptionsModalOpen || isAccountModalOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
     } else {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     }
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOptionsModalOpen, isAccountModalOpen]);
 
   const handleProfileClick = (e) => {
@@ -285,7 +304,16 @@ const Sidebar = ({
     setIsAccountModalOpen(true);
   };
 
-  
+  const handleProjectClick = (project, index) => {
+    onProjectClick(project);
+    if (projectRefs.current[index]) {
+      projectRefs.current[index].scrollIntoView({
+        behavior: "smooth",
+        block: "center",  // Scroll to the center of the container
+        inline: "nearest" // Align horizontally in the nearest way (no horizontal scrolling needed here)
+      });
+    }
+  };
 
   return (
     <SidebarContainer>
@@ -303,20 +331,25 @@ const Sidebar = ({
         </AddButton>
       </Header>
       <ProjectList isHidden={isHidden}>
-        {projects.map((project) => (
+        {projects.map((project, index) => (
           <React.Fragment key={project.projectId}>
             <ProjectItem
+              ref={(el) => (projectRefs.current[index] = el)}
               selected={project === selectedProject && !selectedSection}
               onClick={() => {
                 if (!isOptionsModalOpen) {
-                  onProjectClick(project);
+                  handleProjectClick(project, index);
                 }
               }}
               onContextMenu={(e) => handleProjectRightClick(project, e)}
             >
               <IconContainer>
                 <Icon>
-                  {project === selectedProject ? <FaChevronDown /> : <FaChevronRight />}
+                  {project === selectedProject ? (
+                    <FaChevronDown />
+                  ) : (
+                    <FaChevronRight />
+                  )}
                 </Icon>
               </IconContainer>
               <ProjectTitle>{project.projectName}</ProjectTitle>
@@ -327,15 +360,15 @@ const Sidebar = ({
             {project === selectedProject && (
               <div>
                 <SectionItem
-                  selected={selectedSection === 'tasks'}
-                  onClick={() => onSectionClick('tasks')}
+                  selected={selectedSection === "tasks"}
+                  onClick={() => onSectionClick("tasks")}
                 >
                   <BulletPoint>・</BulletPoint>
                   작업
                 </SectionItem>
                 <SectionItem
-                  selected={selectedSection === 'calendar'}
-                  onClick={() => onSectionClick('calendar')}
+                  selected={selectedSection === "calendar"}
+                  onClick={() => onSectionClick("calendar")}
                 >
                   <BulletPoint>・</BulletPoint>
                   회의 캘린더
