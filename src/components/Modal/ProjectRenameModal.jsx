@@ -1,3 +1,4 @@
+import axios from '../../axiosConfig';
 import React, { useRef, useState, useEffect } from 'react';
 import styled from 'styled-components';
 
@@ -46,7 +47,7 @@ const Button = styled.button`
   pointer-events: ${props => props.disabled ? 'none' : 'auto'};
 `;
 
-const ProjectRenameModal = ({ top, left, onClose }) => {
+const ProjectRenameModal = ({ top, left, onClose, projectId }) => {
   const modalRef = useRef(null);
   const [newProjectName, setNewProjectName] = useState('');
 
@@ -54,9 +55,10 @@ const ProjectRenameModal = ({ top, left, onClose }) => {
     setNewProjectName(e.target.value);
   };
 
-  const handleRename = () => {
+  const handleRename = async () => {
     if (newProjectName.trim() !== '') {
-      console.log('New project name:', newProjectName); // Perform rename action
+      await axios.post('/api/projects/update', {projectId, "projectName" : newProjectName});
+      window.location.reload(); // 페이지 새로 고침
       onClose();
     }
   };

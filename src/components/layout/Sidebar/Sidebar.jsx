@@ -130,10 +130,7 @@ const ProjectItem = styled.div`
 `;
 
 const ProjectTooltip = styled.div`
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: 35px; // Adjust as needed
+  position: fixed; /* Fixed position to avoid overflow issues */
   background-color: #333333;
   color: #ffffff;
   padding: 2px 6px;
@@ -142,6 +139,7 @@ const ProjectTooltip = styled.div`
   white-space: nowrap;
   display: ${(props) => (props.visible ? "block" : "none")};
   z-index: 10;
+  pointer-events: none; /* Prevent tooltip from blocking mouse events */
 `;
 
 const IconContainer = styled.div`
@@ -231,6 +229,7 @@ const Sidebar = ({
   const [hoveredProject, setHoveredProject] = useState(null);
   const [hoverTimer, setHoverTimer] = useState(null);
   const [projectDescription, setProjectDescription] = useState(""); // 프로젝트 설명 상태 추가
+  const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 }); // Tooltip 위치 상태 추가
 
   const accountModalRef = useRef(null);
   const optionsModalRef = useRef(null);
@@ -333,23 +332,28 @@ const Sidebar = ({
     }
   };
 
-  const handleMouseOver = async (project) => {
+  const handleMouseOver = async (project, e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setTooltipPosition({
+      top: rect.top + window.scrollY,
+      left: rect.right + window.scrollX + 10, // 10px 오른쪽에 표시
+    });
+
     setHoverTimer(
       setTimeout(async () => {
         // 엔드포인트 요청
         try {
           const response = await axios.get(`/api/projects/${project.projectId}`);
-          setProjectDescription(response.data.description); // 응답값 저장
-          console.log(response.data.projectName);
-          console.log(response.data.projectName);
-          console.log(response.data.projectName);
-          console.log(response.data.description);
-          console.log(response.data.description);
+          let description = response.data.description;
+          if (description.length > 20) {
+            description = description.slice(0, 20) + "..."; // 20자 이상이면 잘라서 표시
+          }
+          setProjectDescription(description); // 응답값 저장
           setHoveredProject(project);
         } catch (error) {
           console.error("Error fetching project details:", error);
         }
-      }, 1000) // 1초로 설정
+      }, 1000) // 0.7초로 설정
     );
   };
 
@@ -386,7 +390,7 @@ const Sidebar = ({
                 }
               }}
               onContextMenu={(e) => handleProjectRightClick(project, e)}
-              onMouseOver={() => handleMouseOver(project)}
+              onMouseOver={(e) => handleMouseOver(project, e)}
               onMouseOut={handleMouseOut}
             >
               <IconContainer>
@@ -402,15 +406,16 @@ const Sidebar = ({
               <OptionsButton onClick={(e) => handleOptionsButtonClick(project, e)}>
                 <FaEllipsisH />
               </OptionsButton>
-              {hoveredProject === project && (
-                <ProjectTooltip visible={true}>
-                  {projectDescription ? (
+              {hoveredProject === project && projectDescription && (
+                <ProjectTooltip
+                  visible={true}
+                  style={{ top: tooltipPosition.top, left: tooltipPosition.left }}
+                >
+                  {projectDescription && (
                     <div>
                       {/* 엔드포인트에서 가져온 데이터를 표시 */}
                       <p>{projectDescription}</p>
                     </div>
-                  ) : (
-                    ""
                   )}
                 </ProjectTooltip>
               )}

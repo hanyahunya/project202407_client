@@ -45,12 +45,7 @@ const ProjectOptionsModal = ({ top, left, projectId, onClose }) => {
   const modalRef = useRef(null);
 
   const handleOpenAddMemberModal = async () => {
-    const token = localStorage.getItem('token');
-    const res = await axios.get(`/api/projects/${projectId}`, {
-      headers : {
-        'Authorization' : `Bearer ${token}`
-      }
-    });
+    const res = await axios.get(`/api/projects/${projectId}`);
     SetProjectName(res.data.projectName);
     setIsAddMemberModalOpen(true);
   };
@@ -125,6 +120,7 @@ const ProjectOptionsModal = ({ top, left, projectId, onClose }) => {
           top={top + 150}
           left={left}
           onClose={handleCloseProjectRenameModal}
+          projectId={projectId}
         />
       )}
     </>

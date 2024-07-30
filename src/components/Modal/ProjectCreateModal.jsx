@@ -83,8 +83,8 @@ const ProjectCreateModal = ({ isOpen, onClose }) => {
       try {
         await axios.post('/api/projects/create', 
           { 
-            projectName: title, 
-            description: description || '' 
+            projectName: title.trim(), // 제목 공백 제거
+            description: description.trim() || '' // 설명 공백 제거
           }, 
           {
             headers: { 
